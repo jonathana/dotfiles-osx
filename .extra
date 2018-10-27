@@ -1,0 +1,51 @@
+# Common directory under which all our servers will live.  Set this to where you keep your vagrant servers
+export VAGRANT_SERVERS=${HOME}/Files/src/vagrant_servers
+
+# Grab the subcommands out of the no-arg invocation of vagrant
+VAGRANT_SUBCMDS=`vagrant list-commands | awk 'BEGIN { in_subs=0 }; /^$/ { if (in_subs == 0) { in_subs=1; next } }; { if (in_subs) { print $1 } };'`
+
+# FUNCTION: vgt
+# PURPOSE: shell "command" to run a vagrant sub-command against a specific VM
+# USAGE: vag _server_name_ _vagrant_subcommand_
+# ARGUMENTS:
+#   _server_name_: the name of the server you want to issue the vagrant command against, which is also the
+#     subdirectory under which its Vagrantfile lives underneath the common location
+#   _vagrant_subcommand_: one of the list of known subcommands to vagrant e.g. up, reload, ssh, init, etc.
+function vgt()
+{
+  SERVER_DIR=$1
+  shift
+  echo "running vagrant command ${1} on server ${SERVER_DIR}"
+  (cd ${VAGRANT_SERVERS}/${SERVER_DIR} && vagrant $*)
+}
+
+# FUNCTION: firevm
+# PURPOSE: Go to server directory, resume VM in it, ssh in, and then suspend the VM upon exit
+# ARGUMENTS:
+#   _server_name_: the name of the server you want to issue the vagrant command against, which is also the
+#     subdirectory under which its Vagrantfile lives underneath the common location
+function firevm()
+{
+  (cd $VAGRANT_SERVERS/${1} && vagrant resume && vagrant ssh && vagrant suspend)
+}
+
+# FUNCTION: _vagrant_servers
+# PURPOSE: used by bash autocompletion and the complete command to provide autocompletion to the vag() function
+function _vagrant_servers()
+{
+  local cur=${COMP_WORDS[COMP_CWORD]}
+  if
+    [ ${COMP_CWORD} -eq 1 ]
+  then
+    # Do expansion of possible vagrant servers
+    COMPREPLY=( $(compgen -W '`ls $VAGRANT_SERVERS`' -- $cur) )
+  elif
+    [ ${COMP_WORDS[0]} = 'vag' -a ${COMP_CWORD} -eq 2 ]
+  then
+    # Do expansion of possible vagrant subcommands or our special command(s)
+    COMPREPLY=( $(compgen -W "${VAGRANT_SUBCMDS}" -- $cur) )
+  fi
+}
+
+# Make _vagrant_servers() the autocomplete function for the vag() and firevm() functions
+complete -F _vagrant_servers vgt firevm
