@@ -2,7 +2,7 @@
 export VAGRANT_SERVERS=${HOME}/Files/src/vagrant_servers
 
 # Grab the subcommands out of the no-arg invocation of vagrant
-VAGRANT_SUBCMDS=`vagrant list-commands | awk 'BEGIN { in_subs=0 }; /^$/ { if (in_subs == 0) { in_subs=1; next } }; { if (in_subs) { print $1 } };'`
+VAGRANT_SUBCMDS=`vagrant list-commands 2>/dev/null | awk 'BEGIN { in_subs=0 }; /^$/ { if (in_subs == 0) { in_subs=1; next } }; { if (in_subs) { print $1 } };'`
 
 # FUNCTION: vgt
 # PURPOSE: shell "command" to run a vagrant sub-command against a specific VM
@@ -40,12 +40,12 @@ function _vagrant_servers()
     # Do expansion of possible vagrant servers
     COMPREPLY=( $(compgen -W '`ls $VAGRANT_SERVERS`' -- $cur) )
   elif
-    [ ${COMP_WORDS[0]} = 'vag' -a ${COMP_CWORD} -eq 2 ]
+    [ ${COMP_WORDS[0]} = 'vgt' -a ${COMP_CWORD} -eq 2 ]
   then
     # Do expansion of possible vagrant subcommands or our special command(s)
     COMPREPLY=( $(compgen -W "${VAGRANT_SUBCMDS}" -- $cur) )
   fi
 }
 
-# Make _vagrant_servers() the autocomplete function for the vag() and firevm() functions
+# Make _vagrant_servers() the autocomplete function for the vgt() and firevm() functions
 complete -F _vagrant_servers vgt firevm
