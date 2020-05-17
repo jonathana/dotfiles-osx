@@ -1,5 +1,19 @@
+export BASH_SILENCE_DEPRECATION_WARNING=1
+
+NPM_PACKAGES="${HOME}/.npm-packages"
+
+export PATH="$NPM_PACKAGES/bin:$PATH"
+
+# Unset manpath so we can inherit from /etc/manpath via the `manpath` command
+unset MANPATH # delete if you already modified MANPATH elsewhere in your config
+export MANPATH="$NPM_PACKAGES/share/man:$(manpath)"
+
 # Common directory under which all our servers will live.  Set this to where you keep your vagrant servers
 export VAGRANT_SERVERS=${HOME}/Files/src/vagrant_servers
+
+# n support
+export N_PREFIX=$HOME/n
+export PATH="${HOME}/n/bin:${PATH}"
 
 # Grab the subcommands out of the no-arg invocation of vagrant
 VAGRANT_SUBCMDS=`vagrant list-commands 2>/dev/null | awk 'BEGIN { in_subs=0 }; /^$/ { if (in_subs == 0) { in_subs=1; next } }; { if (in_subs) { print $1 } };'`
